@@ -70,7 +70,6 @@ function ImageUploader() {
 
     if(image !== null){
       await getLocation();
-      await remind(image?.base64, formattedDate)
     }
   };
 
@@ -174,14 +173,15 @@ function ImageUploader() {
       ) : (
         <View style={styles.cameraContainer}>
           <CameraView style={styles.camera} facing='back' ref={cameraRef}>
-            <View style={styles.cameraButtonContainer}>
-              <TouchableOpacity onPress={takePicture} style={styles.captureButton}></TouchableOpacity>
-            </View>
+            
           </CameraView>
         </View>
       )}
+      <TouchableOpacity onPress={takePicture} style={styles.uploadButton}>
+        <Text style={styles.uploadButtonText}>Take Picture</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
-        <Text style={styles.uploadButtonText}>or Upload Image</Text>
+        <Text style={styles.uploadButtonText}>Upload Image</Text>
       </TouchableOpacity>
       {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
     </View>
