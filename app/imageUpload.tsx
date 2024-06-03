@@ -1,8 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, CameraView, useCameraPermissions } from 'expo-camera';
-import { StyleSheet, Alert } from 'react-native';
+import { StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Image, View, Text, TouchableOpacity } from 'react-native';
+import { Image, View, Text, TouchableOpacity } from 'react-native';
 import * as Calendar from 'expo-calendar';
 import * as Location from 'expo-location';
 import { parse } from 'date-fns';
@@ -14,39 +14,40 @@ function ImageUploader() {
   const [permission, requestCameraPermission] = useCameraPermissions();
   const [calStatus, requestCalendarPermission] = Calendar.useCalendarPermissions();
   const [remindStatus, requestReminderPermission] = Calendar.useRemindersPermissions();
-  const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('');
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [status, setStatus] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   const cameraRef = useRef(null);
 
   const today = new Date();
   const formattedDate = today.toString();
 
-  const getLocation = async () => {
+  const requestLocationPermission = async () => {
     let loStatus = await Location.requestForegroundPermissionsAsync();
-    console.log("lostats", loStatus)
-    setStatus(loStatus);
     if (loStatus.status !== 'granted') {
       Alert.alert("Permission to access location was denied. We need it so you can remember where you parked :)");
-      loStatus = await Location.requestForegroundPermissionsAsync();
-      setStatus(loStatus);
+      return false;
+    }
+    return true;
+  };
+
+  const getLocation = async () => {
+    setLocationLoading(true);
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) {
+      setLocationLoading(false);
       return;
     }
 
     let location = await Location.getCurrentPositionAsync({});
-    getAddressFromCoordinates(location.coords.latitude, location.coords.longitude);
-    // setLocation(location);
-
-    console.log("Loc", location)
-
+    await getAddressFromCoordinates(location.coords.latitude, location.coords.longitude);
+    setLocationLoading(false);
   };
 
   const getAddressFromCoordinates = async (latitude, longitude) => {
     try {
       let reverseGeocode = await Location.reverseGeocodeAsync({ latitude, longitude });
-      
       if (reverseGeocode.length > 0) {
         let location = reverseGeocode[0];
         let formattedAddress = `${location.name}, ${location.street}, ${location.city}, ${location.region}, ${location.country}, ${location.postalCode}`;
@@ -64,11 +65,6 @@ function ImageUploader() {
     if (cameraRef.current) {
       let photo = await cameraRef.current.takePictureAsync({ base64: true });
       setImage(photo);
-        // Trigger location fetching after taking the picture
-      // await remind(image?.base64, formattedDate);  // Create the reminder after taking the picture and fetching location
-    }
-
-    if(image !== null){
       await getLocation();
     }
   };
@@ -84,22 +80,20 @@ function ImageUploader() {
 
     if (!result.cancelled) {
       setImage(result.assets[0]);
-       console.log( formattedDate,"image")
-       await getLocation();  
-        // await remind(result.assets[0].base64, formattedDate); 
-     
+      await getLocation();
     }
   };
 
   const remind = async (image, formattedDate) => {
-    let detText = await callGoogleVisionAsync(image, formattedDate)
+    setLoading(true);
+    let detText = await callGoogleVisionAsync(image, formattedDate);
     if (detText === "This image doesn't contain any text!") {
+      setLoading(false);
       Alert.alert("No text found", "The image doesn't contain any recognizable text.");
       return;
     }
-     
-     setText(detText)
-     console.log("Textt", detText)
+
+    setText(detText);
     const eventTitle = "Move Car - ParkCar App Reminder";
     let dateTimeString = detText; // This should come from your extracted text
     // Parse the date and time string
@@ -111,71 +105,75 @@ function ImageUploader() {
       if (calendars.length > 0) {
         let calendarId = calendars[0]?.id;
 
-          console.log("Address -11", address)
+        const eventDetails = {
+          title: eventTitle,
+          startDate: parsedDate,
+          endDate: new Date(parsedDate.getTime() + 90 * 60 * 1000), // 1 hour 30 minutes event
+          timeZone: "GMT",
+          location: address, // Add your car location if available
+          alarms: [
+            {
+              relativeOffset: -30, // 30 minutes before the start time
+              method: Calendar.AlarmMethod.ALERT
+            }
+          ]
+        };
 
-          const eventDetails = {
-            title: eventTitle,
-            startDate: parsedDate,
-            endDate: new Date(parsedDate.getTime() + 90 * 60 * 1000), // 1 hour 30 minutes event
-            timeZone: "GMT",
-            location: address, // Add your car location if available
-            alarms: [
-              {
-                relativeOffset: -30, // 30 minutes before the start time
-                method: Calendar.AlarmMethod.ALERT
-              }
-            ]
-          };
-  
-          try {
-            await Calendar.createEventAsync(calendarId, eventDetails);
-            Alert.alert("Reminder Added", `Move your car by ${dateTimeString}. A reminder has been added to your calendar :)`);
-            console.log("Event created successfully!", location, status);
-          } catch (e) {
-            console.log("Error creating event: ", e);
-          }
+        try {
+          await Calendar.createEventAsync(calendarId, eventDetails);
+          setLoading(false);
+          Alert.alert("Reminder Added", `Move your car by ${dateTimeString}. A reminder has been added to your calendar :)`);
+          resetCameraView(); // Reset camera view
+        } catch (e) {
+          setLoading(false);
+          console.log("Error creating event: ", e);
+          Alert.alert('Error creating event', 'Could not create calendar event. Please try again.');
         }
-
-       
+      }
     } else {
       requestCalendarPermission();
       requestReminderPermission();
+      setLoading(false);
     }
+  };
+
+  const resetCameraView = () => {
+    setImage(null);
+    setText('');
+    setAddress('');
   };
 
   useEffect(() => {
     requestCameraPermission();
     requestCalendarPermission();
     requestReminderPermission();
-    async () => { await Location.requestForegroundPermissionsAsync(); }
   }, []);
 
-  useEffect(() =>{
-
-    if(address && image){
-      remind(image?.base64, formattedDate)
+  useEffect(() => {
+    if (address && image) {
+      remind(image?.base64, formattedDate);
     }
-
-  },[address, image])
+  }, [address, image]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>ParkCar</Text>
       <Text style={styles.instructions}>Simply take a picture of your street parking sign and never forget where you park!</Text>
-      {image ? (
-        <>
-          <Image
-            source={{ uri: image?.uri }}
-            style={styles.image}
-          />
-          <Text style={styles.text}>{text}</Text>
-        </>
+      {loading || locationLoading ? (
+        <ActivityIndicator size="large" color="#1E90FF" />
       ) : (
-        <View style={styles.cameraContainer}>
-          <CameraView style={styles.camera} facing='back' ref={cameraRef}>
-            
-          </CameraView>
-        </View>
+        <>
+          {image ? (
+            <>
+              <Image source={{ uri: image?.uri }} style={styles.image} />
+              <Text style={styles.text}>{text}</Text>
+            </>
+          ) : (
+            <View style={styles.cameraContainer}>
+              <CameraView style={styles.camera} facing='back' ref={cameraRef} />
+            </View>
+          )}
+        </>
       )}
       <TouchableOpacity onPress={takePicture} style={styles.uploadButton}>
         <Text style={styles.uploadButtonText}>Take Picture</Text>
@@ -183,7 +181,6 @@ function ImageUploader() {
       <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
         <Text style={styles.uploadButtonText}>Upload Image</Text>
       </TouchableOpacity>
-      {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
     </View>
   );
 }
@@ -217,22 +214,6 @@ const styles = StyleSheet.create({
     width: 350,
     height: 400,
     justifyContent: 'flex-end'
-  },
-  cameraButtonContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  captureButton: {
-    width: 60,
-    height: 60,
-    backgroundColor: 'red',
-    borderRadius: 30,
-    marginBottom: 20,
-    borderWidth: 5,
-    borderColor: 'white'
   },
   uploadButton: {
     backgroundColor: '#1E90FF',
