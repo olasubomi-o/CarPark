@@ -94,7 +94,7 @@ function ImageUploader() {
     }
 
     setText(detText);
-    const eventTitle = "Move Car - ParkCar App Reminder";
+    const eventTitle = "Move Car - Parking Remind App Reminder";
     let dateTimeString = detText; // This should come from your extracted text
     // Parse the date and time string
     const parsedDate = parse(dateTimeString, "EEEE, MMMM do, h:mma", new Date());
@@ -157,7 +157,7 @@ function ImageUploader() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>ParkCar</Text>
+      <Text style={styles.heading}>Parking Remind</Text>
       <Text style={styles.instructions}>Simply take a picture of your street parking sign and never forget where you park!</Text>
       {loading || locationLoading ? (
         <ActivityIndicator size="large" color="#1E90FF" />

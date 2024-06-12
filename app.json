@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "parkCar",
-    "slug": "parkCar",
-    "version": "1.0.0",
+    "name": "Parking Remind",
+    "slug": "Parking Remind",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/iphone-splash-preview.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -32,21 +32,21 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "The app needs to access your calendar."
+          "calendarPermission": "Parking Remind needs access to your calendar to create reminders for when you need to move your car, ensuring you avoid parking tickets."
 
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow ParkCar to access your camera"
+          "cameraPermission": "Parking Remind needs access to your camera to take pictures of parking signs, which are used to determine parking restrictions and set reminders accordingly."
          
         }
       ], 
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow ParkCar to use your location."
+          "locationAlwaysAndWhenInUsePermission": "Parking Remind requires access to your location to save the location of your parked car, making it easier to find your car and to set accurate reminders."
         }
       ]
     ],
