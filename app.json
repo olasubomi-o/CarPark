@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Parking Remind",
-    "slug": "Parking Remind",
+    "slug": "parkCar",
     "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -14,13 +14,27 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.oolawepo.parkCar"
+      "bundleIdentifier": "com.oolawepo.parkCar",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Parking Remind needs access to your camera to take pictures of parking signs, which are used to determine parking restrictions and set reminders accordingly.",
+        "NSCalendarsUsageDescription": "Parking Remind needs access to your calendar to create reminders for when you need to move your car, ensuring you avoid parking tickets.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Parking Remind requires access to your location to save the location of your parked car, making it easier to find your car and to set accurate reminders."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.oolawepo.parkCar"
     },
     "web": {
       "bundler": "metro",
@@ -33,16 +47,20 @@
         "expo-calendar",
         {
           "calendarPermission": "Parking Remind needs access to your calendar to create reminders for when you need to move your car, ensuring you avoid parking tickets."
-
         }
       ],
       [
         "expo-camera",
         {
           "cameraPermission": "Parking Remind needs access to your camera to take pictures of parking signs, which are used to determine parking restrictions and set reminders accordingly."
-         
         }
-      ], 
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Parking Remind needs access to your camera to take pictures of parking signs, which are used to determine parking restrictions and set reminders accordingly."
+        }
+      ],
       [
         "expo-location",
         {

@@ -7,8 +7,21 @@ function generateBody(image, date) {
     contents:[
         {
           parts:[
-            {text: `You are an Ai assistant whose job is to accurately let me know when to move my car throughout the whole year based on the parking restrictions. Context would be provided from the image I would upload
-            Given the parking sign in the image and today's date, ${date}, when should I move my car to avoid a ticket? Provide only the day and time in this format: "EEEE, MMMM do, h:MMA"`},
+            {text: `You are an AI assistant whose job is to accurately let me know when to move my car throughout the whole year based on the parking restrictions. Context will be provided from the image I upload.
+
+            Given the parking sign in the image and today's date, today's date being ${date}, when next should I move my car to avoid a ticket? Consider the following details in your answer:
+
+            
+            1. Identify the days and times when parking is restricted from the parking sign in the image.
+            2. If today is one of the restricted days and it is already past the restricted time, provide the next upcoming restricted day and time.
+            3. If today is not one of the restricted days, provide the next upcoming restricted day and time.
+            4. Provide the next day and time in the format: "EEEE, MMMM do, h:mma".
+
+            Please Provide only the next day and time in this format: "EEEE, MMMM do, h:mma
+
+            
+            Make sure to accurately interpret the parking sign and calculate the next instance when the car needs to be moved to avoid a ticket.
+            `},
             {
               inline_data: {
                 mime_type:"image/jpeg",

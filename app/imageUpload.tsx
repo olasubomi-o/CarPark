@@ -1,22 +1,31 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, CameraView, useCameraPermissions } from 'expo-camera';
-import { StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+// import { Camera, CameraView, useCameraPermissions } from 'expo-camera';
+import { StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Image, View, Text, TouchableOpacity } from 'react-native';
 import * as Calendar from 'expo-calendar';
 import * as Location from 'expo-location';
 import { parse } from 'date-fns';
+import { PinchGestureHandler, State, Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import callGoogleVisionAsync from '@/utils/helperFunctions';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { Camera, useCameraDevice, useCameraPermission, } from 'react-native-vision-camera';
 
 function ImageUploader() {
   const [image, setImage] = useState(null);
   const [text, setText] = useState('');
-  const [permission, requestCameraPermission] = useCameraPermissions();
   const [calStatus, requestCalendarPermission] = Calendar.useCalendarPermissions();
   const [remindStatus, requestReminderPermission] = Calendar.useRemindersPermissions();
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const device = useCameraDevice('back')
+  const { hasPermission, requestPermission } = useCameraPermission()
+
+  //Setup permission if no camera permission granted 
+
+
+
 
   const cameraRef = useRef(null);
 
@@ -61,9 +70,10 @@ function ImageUploader() {
     }
   };
 
+  //Moving from Expo camera to React native camera
   const takePicture = async () => {
     if (cameraRef.current) {
-      let photo = await cameraRef.current.takePictureAsync({ base64: true });
+      let photo = await cameraRef.current.takePhoto();
       setImage(photo);
       await getLocation();
     }
@@ -78,9 +88,11 @@ function ImageUploader() {
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setImage(result.assets[0]);
+    if (!result.canceled) {
+      setImage(result?.assets[0]);
       await getLocation();
+    } else {
+      Alert.alert('You did not upload an image');
     }
   };
 
@@ -122,7 +134,7 @@ function ImageUploader() {
         try {
           await Calendar.createEventAsync(calendarId, eventDetails);
           setLoading(false);
-          Alert.alert("Reminder Added", `Move your car by ${dateTimeString}. A reminder has been added to your calendar :)`);
+          Alert.alert("Reminder Added",`Move your car by ${dateTimeString}`);
           resetCameraView(); // Reset camera view
         } catch (e) {
           setLoading(false);
@@ -144,7 +156,7 @@ function ImageUploader() {
   };
 
   useEffect(() => {
-    requestCameraPermission();
+    requestPermission();
     requestCalendarPermission();
     requestReminderPermission();
   }, []);
@@ -154,6 +166,9 @@ function ImageUploader() {
       remind(image?.base64, formattedDate);
     }
   }, [address, image]);
+
+
+
 
   return (
     <View style={styles.container}>
@@ -169,9 +184,17 @@ function ImageUploader() {
               <Text style={styles.text}>{text}</Text>
             </>
           ) : (
-            <View style={styles.cameraContainer}>
-              <CameraView style={styles.camera} facing='back' ref={cameraRef} />
-            </View>
+        <View style={styles.cameraContainer}>
+            <Camera 
+            ref={cameraRef}
+            photo = {true}
+            isActive={true}
+            device={device}
+            enableZoomGesture={true}
+            style={styles.camera}
+
+            />
+          </View>   
           )}
         </>
       )}
