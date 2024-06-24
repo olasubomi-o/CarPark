@@ -2,7 +2,7 @@
   "expo": {
     "name": "Parking Remind",
     "slug": "parkCar",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -18,7 +18,11 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Parking Remind needs access to your camera to take pictures of parking signs, which are used to determine parking restrictions and set reminders accordingly.",
         "NSCalendarsUsageDescription": "Parking Remind needs access to your calendar to create reminders for when you need to move your car, ensuring you avoid parking tickets.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Parking Remind requires access to your location to save the location of your parked car, making it easier to find your car and to set accurate reminders."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Parking Remind requires access to your location to save the location of your parked car, making it easier to find your car and to set accurate reminders.",
+        "NSLocationWhenInUseUsageDescription":"Parking Remind requires access to your location to save the location of your parked car, making it easier to find your car and to set accurate reminders.",
+        "NSLocationAlwaysUsageDescription":"Parking Remind requires access to your location to save the location of your parked car, making it easier to find your car and to set accurate reminders.",
+        "NSRemindersUsageDescription":"Parking Remind needs access to your reminder to create reminders for when you need to move your car, ensuring you avoid parking tickets.",
+        "NSRemindersFullAccessUsageDescription": "Parking Remind needs access to your reminder to create reminders for when you need to move your car, ensuring you avoid parking tickets."
       }
     },
     "android": {
